@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -23,8 +24,9 @@ import {
   Cell,
 } from "recharts"
 
-const stats = [
+const initialStats = [
   {
+    id: "hours",
     label: "Hours Studied",
     value: "24.5",
     change: "+12%",
@@ -34,8 +36,11 @@ const stats = [
     bgColor: "bg-chart-1/10",
   },
   {
+    id: "tasks",
     label: "Tasks Completed",
     value: "18/25",
+    completedCount: 18,
+    totalCount: 25,
     change: "+8%",
     trend: "up",
     icon: CheckCircle2,
@@ -43,6 +48,7 @@ const stats = [
     bgColor: "bg-chart-2/10",
   },
   {
+    id: "streak",
     label: "Current Streak",
     value: "7 days",
     change: "+2",
@@ -52,6 +58,7 @@ const stats = [
     bgColor: "bg-chart-3/10",
   },
   {
+    id: "subjects",
     label: "Subjects Active",
     value: "5",
     change: "Same",
@@ -80,7 +87,7 @@ const subjectDistribution = [
   { name: "English", value: 10, color: "var(--chart-5)" },
 ]
 
-const upcomingTasks = [
+const initialTasks = [
   {
     id: 1,
     title: "Complete Calculus Chapter 5",
@@ -115,7 +122,51 @@ const upcomingTasks = [
   },
 ]
 
+const initialGoals = [
+  { id: "studyHours", label: "Study Hours", current: 24.5, target: 30, unit: "hrs" },
+  { id: "tasksCompleted", label: "Tasks Completed", current: 18, target: 25, unit: "tasks" },
+  { id: "problems", label: "Practice Problems", current: 45, target: 50, unit: "problems" },
+  { id: "pages", label: "Reading Pages", current: 120, target: 200, unit: "pages" },
+]
+
 export function Dashboard() {
+  const [tasks, setTasks] = useState(initialTasks)
+  const [goals, setGoals] = useState(initialGoals)
+
+  const toggleTaskComplete = (taskId: number) => {
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === taskId ? { ...task, completed: !task.completed } : task
+      )
+    )
+    
+    // Update the tasks goal when a task is toggled
+    setGoals((prev) =>
+      prev.map((goal) => {
+        if (goal.id === "tasksCompleted") {
+          const currentTask = tasks.find((t) => t.id === taskId)
+          const delta = currentTask?.completed ? -1 : 1
+          return { ...goal, current: Math.max(0, goal.current + delta) }
+        }
+        return goal
+      })
+    )
+  }
+
+  const completedTasksCount = tasks.filter((t) => t.completed).length
+  const totalTasksCount = tasks.length
+
+  // Calculate dynamic stats
+  const dynamicStats = initialStats.map((stat) => {
+    if (stat.id === "tasks") {
+      return {
+        ...stat,
+        value: `${completedTasksCount}/${totalTasksCount}`,
+      }
+    }
+    return stat
+  })
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -128,7 +179,7 @@ export function Dashboard() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {stats.map((stat) => {
+        {dynamicStats.map((stat) => {
           const Icon = stat.icon
           return (
             <Card key={stat.label} className="border-0 shadow-sm">
@@ -266,22 +317,29 @@ export function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-base font-semibold">Upcoming Tasks</CardTitle>
-                <CardDescription>Your next study assignments</CardDescription>
+                <CardDescription>
+                  {completedTasksCount} of {totalTasksCount} completed
+                </CardDescription>
               </div>
               <Calendar className="size-5 text-muted-foreground" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {upcomingTasks.map((task) => (
+              {tasks.map((task) => (
                 <div
                   key={task.id}
-                  className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                  className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
+                  onClick={() => toggleTaskComplete(task.id)}
                 >
-                  <Checkbox checked={task.completed} className="mt-0.5" />
+                  <Checkbox 
+                    checked={task.completed} 
+                    onCheckedChange={() => toggleTaskComplete(task.id)}
+                    className="mt-0.5" 
+                  />
                   <div className="flex-1 min-w-0">
                     <p
-                      className={`text-sm font-medium ${
+                      className={`text-sm font-medium transition-all ${
                         task.completed ? "line-through text-muted-foreground" : ""
                       }`}
                     >
@@ -292,14 +350,16 @@ export function Dashboard() {
                       <span className="text-xs text-muted-foreground">•</span>
                       <span
                         className={`text-xs font-medium ${
-                          task.dueDate === "Today"
+                          task.completed
+                            ? "text-muted-foreground"
+                            : task.dueDate === "Today"
                             ? "text-destructive"
                             : task.dueDate === "Tomorrow"
                             ? "text-chart-5"
                             : "text-muted-foreground"
                         }`}
                       >
-                        {task.dueDate}
+                        {task.completed ? "Completed" : task.dueDate}
                       </span>
                     </div>
                   </div>
@@ -317,34 +377,20 @@ export function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-5">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Study Hours</span>
-                  <span className="font-medium">24.5 / 30 hrs</span>
-                </div>
-                <Progress value={82} className="h-2" />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Tasks Completed</span>
-                  <span className="font-medium">18 / 25 tasks</span>
-                </div>
-                <Progress value={72} className="h-2" />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Practice Problems</span>
-                  <span className="font-medium">45 / 50 problems</span>
-                </div>
-                <Progress value={90} className="h-2" />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Reading Pages</span>
-                  <span className="font-medium">120 / 200 pages</span>
-                </div>
-                <Progress value={60} className="h-2" />
-              </div>
+              {goals.map((goal) => {
+                const percentage = Math.round((goal.current / goal.target) * 100)
+                return (
+                  <div key={goal.id} className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">{goal.label}</span>
+                      <span className="font-medium">
+                        {goal.current} / {goal.target} {goal.unit}
+                      </span>
+                    </div>
+                    <Progress value={Math.min(percentage, 100)} className="h-2" />
+                  </div>
+                )
+              })}
             </div>
           </CardContent>
         </Card>
