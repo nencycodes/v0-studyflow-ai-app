@@ -14,6 +14,7 @@ import {
   HelpCircle,
   Sliders,
   Trophy,
+  Play,
 } from "lucide-react"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -32,6 +33,7 @@ interface SidebarNavProps {
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "planner", label: "Study Planner", icon: CalendarDays },
+  { id: "learn", label: "Learn", icon: Play },
   { id: "progress", label: "Progress", icon: BarChart3 },
 ]
 

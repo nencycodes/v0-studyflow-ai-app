@@ -11,6 +11,8 @@ import { ProfileSettings } from "@/components/profile-settings"
 import { Preferences } from "@/components/preferences"
 import { HelpSupport } from "@/components/help-support"
 import { GamificationWidget } from "@/components/gamification-widget"
+import { TopicSearch } from "@/components/topic-search"
+import { AIChatbot } from "@/components/ai-chatbot"
 import { Search, User, ChevronDown, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -74,6 +76,8 @@ export default function Home() {
         return <Dashboard />
       case "planner":
         return <StudyPlanner />
+      case "learn":
+        return <TopicSearch />
       case "progress":
         return <ProgressTracker />
       case "profile":
@@ -247,6 +251,9 @@ export default function Home() {
           {renderActiveTab()}
         </main>
       </div>
+
+      {/* AI Chatbot - available on all pages */}
+      <AIChatbot />
     </div>
   )
 }
