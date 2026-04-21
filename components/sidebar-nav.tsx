@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button"
 interface SidebarNavProps {
   activeTab: string
   onTabChange: (tab: string) => void
+  userName?: string
+  onLogout?: () => void
 }
 
 const navItems = [
@@ -25,8 +27,9 @@ const navItems = [
   { id: "progress", label: "Progress", icon: BarChart3 },
 ]
 
-export function SidebarNav({ activeTab, onTabChange }: SidebarNavProps) {
+export function SidebarNav({ activeTab, onTabChange, userName, onLogout }: SidebarNavProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
 
   return (
     <>
@@ -67,6 +70,14 @@ export function SidebarNav({ activeTab, onTabChange }: SidebarNavProps) {
             </div>
           </div>
 
+          {/* User info */}
+          {userName && (
+            <div className="px-6 py-4 border-b border-sidebar-border">
+              <p className="text-xs text-sidebar-muted uppercase tracking-wider mb-1">Welcome back</p>
+              <p className="text-sm font-medium text-sidebar-foreground truncate">{userName}</p>
+            </div>
+          )}
+
           {/* Navigation */}
           <nav className="flex-1 px-3 py-4">
             <div className="space-y-1">
@@ -97,11 +108,33 @@ export function SidebarNav({ activeTab, onTabChange }: SidebarNavProps) {
 
           {/* Footer */}
           <div className="px-3 py-4 border-t border-sidebar-border">
-            <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors">
+            <button 
+              onClick={() => setShowSettings(!showSettings)}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
+            >
               <Settings className="size-5" />
               Settings
             </button>
-            <button className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors">
+            
+            {/* Settings submenu */}
+            {showSettings && (
+              <div className="ml-4 mt-1 space-y-1 animate-in slide-in-from-top-2 duration-200">
+                <button className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors">
+                  Profile Settings
+                </button>
+                <button className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors">
+                  Notifications
+                </button>
+                <button className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors">
+                  Appearance
+                </button>
+              </div>
+            )}
+            
+            <button 
+              onClick={onLogout}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-sidebar-muted hover:text-red-400 hover:bg-red-500/10 transition-colors mt-1"
+            >
               <LogOut className="size-5" />
               Sign Out
             </button>
